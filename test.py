@@ -1,11 +1,19 @@
+import os.path
 from time import sleep
 from datetime import datetime
 import speedtest
 from tqdm import tqdm
 import pickle
+import sys
 
-SLEEP = 10  # Seconds between tests
-RUNS = 5  # How many times to run the test (-1 for infinite)
+SLEEP = int(sys.argv[1])  # Seconds between tests
+RUNS = int(sys.argv[2])  # How many times to run the test (-1 for infinite)
+
+
+def load_history() -> list:
+    """Load the results from the pickle file or return an empty list."""
+
+    return pickle.load(open('results.pkl', 'rb')) if os.path.isfile('results.pkl') else []
 
 
 def bit_to_MB(bit: float) -> float:
@@ -44,7 +52,7 @@ def test(bar: tqdm) -> dict:
 def run_tests(runs: int, sleep_seconds: int) -> list:
     """Run the speedtest runs times. If runs is -1, do infinite speedtests."""
 
-    results = []
+    results = load_history()
 
     with tqdm(total=runs) as bar:
         bar.set_description(f"{datetime.now()} | Starting speedtests")

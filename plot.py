@@ -1,33 +1,23 @@
 import pickle
-import matplotlib.pyplot as plt
 from matplotlib import rcParams
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
 
 rcParams.update({'figure.autolayout': True})
 
 results = pickle.load(open('results.pkl', 'rb'))
 
-times = [result['time'].strftime('%Y-%m-%d %H:%M:%S') for result in results]
+df = pd.DataFrame(results)
 
-fig, ax1 = plt.subplots()
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+fig.add_trace(go.Scatter(x=df['time'], y=df['download'], name='Download'), secondary_y=False)
+fig.add_trace(go.Scatter(x=df['time'], y=df['upload'], name='Upload'), secondary_y=False)
+fig.add_trace(go.Scatter(x=df['time'], y=df['ping'], name='Ping'), secondary_y=True)
 
-x = range(len(results))
-plt.xticks(x, times, rotation=90)
+fig.update_layout(title_text="Speedtest Results")
+fig.update_xaxes(title_text="Time")
+fig.update_yaxes(title_text="Download/Upload (Mbps)", secondary_y=False)
+fig.update_yaxes(title_text="Ping (ms)", secondary_y=True)
 
-ax2 = ax1.twinx()
-downloads = [result['download'] for result in results]
-downloads_avg = sum(downloads) / len(downloads)
-ax1.plot(x, downloads, 'b-', label=f'Download (avg: {downloads_avg:.2f} MB/s)')
-
-uploads = [result['upload'] for result in results]
-uploads_avg = sum(uploads) / len(uploads)
-ax1.plot(x, uploads, 'r-', label=f'Upload (avg: {uploads_avg:.2f} MB/s)')
-ax1.set_ylabel('Speed (MB/s)')
-ax1.legend(loc='upper left')
-
-pings = [result['ping'] for result in results]
-pings_avg = sum(pings) / len(pings)
-ax2.plot(x, pings, 'g-', label=f'Ping (avg: {pings_avg:.0f} ms)')
-ax2.set_ylabel('Ping (ms)', color='g')
-ax2.legend(loc='upper right')
-
-plt.savefig('speedtest.png')
+fig.show()
